@@ -1,0 +1,130 @@
+Estos son los archivos q use para generar una tabla Persona con
+5 campos y 10000 registros.
+Los campos son: id, nombre, apellido, dni, fecha nacimiento
+
+├── armar.py
+├── csv
+│   └── personas.csv
+├── data
+│   ├── apes1
+│   └── noms
+├── db
+│   ├── db.sqlite
+│   ├── persona.sql
+│   └── persona_temp.sql
+└── orig
+    ├── apes.csv
+    ├── nombres.csv
+    └── urls.dat
+
+------------------------------------------------------------
+-- armar.py
+------------------------------------------------------------
+import os
+import random
+
+with open('data/apes1') as fa:
+    apellidos = [line.rstrip() for line in fa]
+
+with open('data/noms') as fa:
+    nombres = [line.rstrip() for line in fa]
+
+anios=[1998,1999,2000,2001,2002,2003]
+meses = [1,2,3,4,5,6,7,8,9,10,11,12]
+dias = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28]
+
+for i in range(10000):
+    n = random.choice(nombres)
+    a = random.choice(apellidos).title()
+    d = 35000000 + i
+    dia = '{num:02d}'.format(num=random.choice(dias))
+    mes = '{num:02d}'.format(num=random.choice(meses))
+    fn = f"{dia}/{mes}/{random.choice(anios)}"
+    print(f"{n},{a},{d},{fn}")
+
+--------------------------------------------------------------------
+Ejecutando python armar.py > csv/personas.csv 
+se captura la saida de la ejecucion del armar.py
+en e archivo csv/personas.csv
+
+
+Los archivos data/apes y data/noms los arme bajando data de internet
+y un poco de awk.
+
+
+Hasta aca, tenemos la data lista para importarla a la base de datos sqlite.
+
+Voy al directorio db y creo los archivos persona.sql y persona_temp.sql
+
+Me conecto a sqlite asi:
+
+sqlite db.sqlite
+y aparece
+sqlite>
+
+En este prompt, creamos las tablas:
+sqlite> .read persona.sql
+Y se crea la tabla persona. Como lo vemos?
+sqlite> .schema
+Y nos muestra la tabla q acabamos de crear
+Seguimos
+sqlite> .read persona_temp.sql
+Y se crea la tabla persona_temp
+sqlite> .schema
+y vemos las 2 tablas
+
+(para ver una tabla es sqlite> .schema nombre_de_la_tabla)
+
+
+
+OK: Hasta aca, tenemos las tablas listas para la importacion.
+Es asi:
+sqlite> .mode csv
+sqlite> .import ../csv/personas.csv PersonaTemp
+
+Esto deberia cargar los 10000 registros en la tabla PersonaTemp.
+
+sqlite> select count(*) from PersonaTemp;
+Deberia devolver 10000
+sqlite> select * from PersonaTemp;
+Deberiamos ver varias filas de la tabla en pantalla.
+
+
+Ahora hay q pasar la data de PersonaTemp a Persona.
+es asi:
+sqlite> insert into Persona(nombre,apellido,dni,fnac) select * from PersonaTemp;
+
+Verificamos:
+sqlite> select count(*) from Persona;
+Deberian ser 10000
+sqlite> select * from Persona;
+Debriamos ver varias filas de la tabla.
+
+Nota: El archivo db.sqlite ya esta cargado.
+Si quieren, pueden empezar a tirar consultas (queries) sobre la tabla 
+Persona para practicar.
+Los q tengan python andando, pueden prabar todo el proceso.
+De ultima, copien el archivo db.sqlite a otro directorio.
+
+Para abrir una base en sqlite es asi:
+sqlite path_completo_al_archivo_de_la_base_de_datos
+Por ejemplo: sqlite db.sqlite
+abre esta base. siempre q estemos en el dir donde esta db.sqlite.
+
+https://www.sqlite.org/2022/sqlite-tools-win32-x86-3390400.zip
+Para los que no tengan sqlite instalado, se bajan lo del link q esta arriba, 
+lo deszipean, y trae 3 archivos.
+
+
+
+Instalación en Windows
+
+Para instalar sqlite3 en Windows necesitas, en primer lugar, dirigirte al sitio web https://www.sqlite.org/download.html ahí te dirigirás a la sección Precompiled Binaries for Windows, en la que encontrarás los binarios para Windows, de ahí tienes que descargar los archivos:
+
+    sqlite-tools
+    sqlite-dll
+
+Asegúrate de seleccionar los archivos de descarga adecuados, ya que para ambos existen versiones de 32 bits (x86) y 64 bits (x64).
+
+Una vez que descargues los archivos y los descomprimas, ya que originalmente vienen como un .zip, tienes que moverlos a la carpeta system32 para agregarlos C:\WINDOWS\system32
+
